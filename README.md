@@ -10,6 +10,10 @@
 
 ## ⚡️ Installation
 
-Download `terabithia.js` from this repo and add it to your project as a content script.
+Download the `libraries` folder from this repo and add it to your project.
 
-Make sure to adjust the variables and set up your own custom handlers!
+Add Terabithia as a content script in your manifest using `libraries/terabithia.js`
+
+Make sure to add `libraries/*` to `web_accessible_resources` so Terabithia can inject the bridge into the page.
+
+Lastly, open `terabithia.js` and take a QUICK read through! You may want to adjust the variables and set up your own custom handlers!
