@@ -1,4 +1,3 @@
-# terabithia.js
 <h1 align="center">
   <img alt="cgapp logo" src="https://i.imgur.com/mnmnMvu.png" width="65px"/><br/>
   Terabithia.JS
