@@ -5,7 +5,7 @@
 <p align="center">
     The bridge between PAGE and CONTENT script contexts.
     </br>
-    No data corruption, >1ms latency, receive context-locked responses in a single asynchronous callback.
+    No data corruption, sub-1ms latency, receive context-locked responses in a single asynchronous callback.
 </p>
 
 ## ⚡️ Installation
