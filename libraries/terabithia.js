@@ -249,6 +249,18 @@ async function triggerElementsReactEvent(element, event) {
     return eventResponse?.data;
 };
 
+async function getStorageVar(key) {
+    if (context === 'CONTENT') return new Promise((resolve) => {
+        chrome.storage.local.get([key], (result) => {
+            resolve(result[key]);
+        });
+    });
+
+    const storageRequest = await sendToContent({command: "getStorage", key});
+    const storageResponse = storageRequest?.response;
+    return storageResponse;
+};
+
 // console.log(blueText, `${framework}: Initializing BRIDGE <${BRIDGE_ID}>`);
 
 /*
@@ -466,6 +478,6 @@ if (context === 'PAGE') {
     sendToContent({
         command: 'checkContentListening'
     }).then(() => {
-        console.log(`%cTERABITHIA is WORKING for: ${UNIQUE_IDENTIFIER}`, "color: yellow; background-color: blue; padding: 5px; font-weight: 500;");
+        console.log(`%cTERABITHIA is OPERATIONAL for: ${UNIQUE_IDENTIFIER}`, "color: yellow; background-color: blue; padding: 5px; font-weight: 500;");
     });
 };
