@@ -31,7 +31,7 @@ var handleCommandFromContent = async (command, body) => {
 var handleCommandFromPage = async (command, body) => {
     switch (command) {
         case "writeMeAPoem":
-            // If you go into DEV TOOLS and use this command < await sendToContet({ command: "writeMeAPoem" }) > you will get the following response, even though it is stored in CONTENT script context!
+            // If you go into DEV TOOLS and use this command < await sendToContent({ command: "writeMeAPoem" }) > you will get the following response, even though it is stored in CONTENT script context!
             return "Roses are red, violets are blue, Terabithia is cool... Sorry, I usually write code, not poems.";
         default:
             return;
