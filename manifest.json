@@ -6,31 +6,30 @@
     "host_permissions": ["<all_urls>"],
     "permissions": ["storage"],
     "background": {
-      "service_worker": "background.js"
+        "service_worker": "background.js"
     },
-    "content_scripts":
-    [
+    "content_scripts": [
         {
             "matches": ["<all_urls>"],
-            "js": [
-                "libraries/terabithia.js"
-            ]
+            "js": ["libraries/terabithia.js"]
         }
     ],
-    "web_accessible_resources": [{
-        "resources": ["images/*","libraries/*"],
-        "matches": ["<all_urls>"]
-    }],
+    "web_accessible_resources": [
+        {
+            "resources": ["images/*", "libraries/*"],
+            "matches": ["<all_urls>"]
+        }
+    ],
     "incognito": "spanning",
     "icons": {
-      "16": "./images/icon.png",
-      "32": "./images/icon.png",
-      "48": "./images/icon.png",
-      "128": "./images/icon.png"
+        "16": "./images/icon.png",
+        "32": "./images/icon.png",
+        "48": "./images/icon.png",
+        "128": "./images/icon.png"
     },
     "action": {
-      "default_icon": {
-        "16": "images/icon.png"
-      }
+        "default_icon": {
+            "16": "images/icon.png"
+        }
     }
 }
