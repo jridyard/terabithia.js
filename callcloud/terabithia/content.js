@@ -18,6 +18,9 @@ injectTerabithiaPageCommandsScript();
 // Q: What is this "commands" object for?
 // A: When you run "window['terabithia-bridge'].execute({ command })" it will look for a callback with that command name in the object below.
 
+// Q: Why don't these overwrite each other? Both page/content context are setting the window variable to the same key.
+// A: The window varibles in global context vs. isolated context are seperate and unique in each context.
+
 // ADJUST "commands" to add custom functionality.
 // This initializes CONTENT script callbacks for PAGE script context to access \\
 window[TERABITHIA].commands = {

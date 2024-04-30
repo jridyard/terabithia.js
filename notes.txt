@@ -1,0 +1,8 @@
+- Duplicate the "callcloud" folder and change the paths
+- Change the TERABITHIA variable in all files
+- Add the content commands file to your manifest under a content script
+- Add "terabithia/*" and "callcloud/*" (or w/e the new folder name is) to web_accessible_resources
+
+Usage:
+- window[TERABITHIA].execute({ command: "commandName" })
+- you can also utilize helpers, I recommend using those for react events / react prop gathering

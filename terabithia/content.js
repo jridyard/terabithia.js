@@ -12,9 +12,6 @@ window[TERABITHIA] = {
         counterpart_identifier: `${TERABITHIA}-PAGE`,
         terabithia_extension_id: TERABITHIA
     }
-    /*
-        command: { commandName: () => {} } // add this in a seperate file to keep this file clean.
-    */
 };
 
 const uuidv4 = () =>
@@ -118,6 +115,27 @@ window[TERABITHIA].helpers = {
             success,
             message
         };
+    },
+    getElementsReactProperties: async (element, reactKey = '__reactProps') => {
+        if (!element)
+            return {
+                success: false,
+                message: 'Element not found.'
+            };
+
+        const targetId = uuidv4();
+
+        element.setAttribute('data-terabithia-target', targetId);
+
+        const reactProps = await window[TERABITHIA].execute({
+            command: 'getReactProperties',
+            selector: `[data-terabithia-target="${targetId}"]`,
+            reactKey
+        });
+
+        element.removeAttribute('data-terabithia-target');
+
+        return reactProps;
     }
 };
 

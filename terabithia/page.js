@@ -102,25 +102,31 @@ window[TERABITHIA].helpers = {
     getReactKey: (element, reactKey = '__reactProps') => {
         // Mostly you will need to use "__reactProps"
         // However, sometimes you may want to access "__reactFiber" or "__reactInternalInstance" etc...
+        if (!element) return;
         return Object.keys(element).filter((key) => key.startsWith(reactKey))[0];
     },
     getReactProps: (element) => {
         const reactPropKey = window[TERABITHIA].helpers.getReactKey(element);
-        const reactProps = element[reactPropKey];
+        const reactProps = element?.[reactPropKey];
         return reactProps;
     },
     getReactFibers: (element) => {
         const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, '__reactFiber');
-        const reactFibers = element[reactPropKey];
+        const reactFibers = element?.[reactPropKey];
         return reactFibers;
     },
     getReactProp: (element, prop) => {
         const reactProps = window[TERABITHIA].helpers.getReactProps(element);
-        return reactProps[prop];
+        return reactProps?.[prop];
     },
     getReactFiber: (element, prop) => {
         const reactFibers = window[TERABITHIA].helpers.getReactFibers(element);
-        return reactFibers[prop];
+        return reactFibers?.[prop];
+    },
+    getReactProperties: (element, reactKey = '__reactProps') => {
+        const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, reactKey);
+        const reactProps = element?.[reactPropKey];
+        return reactProps;
     }
 };
 
@@ -172,5 +178,39 @@ window[TERABITHIA].defaults = {
                 message: `Could not trigger react event. ${err.toString()}`
             };
         }
+    },
+    getReactProperties: (body) => {
+        const selector = body.selector;
+        const reactKey = body.reactKey;
+        if (!selector)
+            return {
+                success: false,
+                message:
+                    'Could not get react properties. No selector provided. Your body should include a SELECTOR key.'
+            };
+        const element = document.querySelector(selector);
+        if (!element)
+            return {
+                success: false,
+                message: `Could not get react properties. No element found with selector ${selector}.`
+            };
+        const reactProps = window[TERABITHIA].helpers.getReactProperties(element, reactKey);
+        if (!reactProps)
+            return {
+                success: false,
+                message: `Could not get react properties. No react props found on element with selector ${selector}.`
+            };
+        // Can't send callbacks back to content script
+        const reactPropsNoCallbacks = Object.keys(reactProps)
+            .filter((key) => typeof reactProps[key] !== 'function')
+            .reduce((obj, key) => {
+                obj[key] = reactProps[key];
+                return obj;
+            }, {});
+
+        return {
+            success: true,
+            data: reactPropsNoCallbacks
+        };
     }
 };
