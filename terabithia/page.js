@@ -1,18 +1,25 @@
-/* ADJUST "TERABITHIA_EXTENSION_ID" to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
-const TERABITHIA_EXTENSION_ID = 'terabithia-test-extension';
-/* ADJUST "TERABITHIA_EXTENSION_ID" to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
+/* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
+const TERABITHIA = 'terabithia-bridge';
+/* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
 
-const terabithia = {
-    executeInCounterpartContext,
-    context: 'PAGE',
-    counterpart: 'CONTENT',
-    context_identifier: `${TERABITHIA_EXTENSION_ID}-PAGE`,
-    counterpart_identifier: `${TERABITHIA_EXTENSION_ID}-CONTENT`
+window[TERABITHIA] = {
+    execute: executeInCounterpartContext,
+    terabithia: {
+        executeInCounterpartContext,
+        context: 'PAGE',
+        counterpart: 'CONTENT',
+        context_identifier: `${TERABITHIA}-PAGE`,
+        counterpart_identifier: `${TERABITHIA}-CONTENT`,
+        terabithia_extension_id: TERABITHIA
+    }
+    /*
+        command: { commandName: () => {} } // add this in a seperate file to keep this file clean.
+    */
 };
 
-async function executeInCounterpartContext(json = {}, bridgeId = terabithia.counterpart_identifier) {
+async function executeInCounterpartContext(json = {}, bridgeId = window[TERABITHIA].terabithia.counterpart_identifier) {
     return new Promise((resolve) => {
-        if (!json?.command && bridgeId === terabithia.counterpart_identifier)
+        if (!json?.command && bridgeId === window[TERABITHIA].terabithia.counterpart_identifier)
             return {
                 success: false,
                 message: `terabithia.executeInCounterpartContext requires a COMMAND property passed via JSON.`
@@ -26,7 +33,7 @@ async function executeInCounterpartContext(json = {}, bridgeId = terabithia.coun
         const senderId = uuidv4();
 
         json.senderId = senderId;
-        json.context = terabithia.context;
+        json.context = window[TERABITHIA].terabithia.context;
 
         const eventInfo = {
             detail: json
@@ -46,23 +53,33 @@ async function executeInCounterpartContext(json = {}, bridgeId = terabithia.coun
     });
 }
 
-window.addEventListener(terabithia.context_identifier, async (e) => {
+window.addEventListener(window[TERABITHIA].terabithia.context_identifier, async (e) => {
     const body = e.detail || {};
     const command = body.command;
     const senderId = body.senderId;
 
     var response = {
         success: false,
-        message: `Unexpected command received in ${terabithia.context} context. Command: ${terabithia.command}`
+        message: `Unexpected command received in ${window[TERABITHIA].terabithia.context} context. Command: ${command}`
     };
 
     switch (command) {
         case 'checkContext':
             response = {
                 success: true,
-                message: `Terabithia is working in ${terabithia.context} context | You sent a message *FROM* ${terabithia.counterpart} context and received a response accessible via ${terabithia.context} context, and received the response back *IN* ${terabithia.counterpart} context.`
+                message: `Terabithia is working in ${window[TERABITHIA].terabithia.context} context | You sent a message *FROM* ${window[TERABITHIA].terabithia.counterpart} context and received a response accessible via ${window[TERABITHIA].terabithia.context} context, and received the response back *IN* ${window[TERABITHIA].terabithia.counterpart} context.`
             };
             break;
+    }
+
+    const commandCallback = window[TERABITHIA].commands?.[command];
+    if (commandCallback && typeof commandCallback === 'function') {
+        response = await commandCallback();
+    } else if (commandCallback && typeof commandCallback !== 'function') {
+        response = {
+            success: false,
+            message: `Command callback for ${command} is not a function.`
+        };
     }
 
     await executeInCounterpartContext(

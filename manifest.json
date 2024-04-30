@@ -12,11 +12,15 @@
         {
             "matches": ["<all_urls>"],
             "js": ["terabithia/content.js"]
+        },
+        {
+            "matches": ["https://www.callcloud.app/*"],
+            "js": ["callcloud/terabithia/content.js"]
         }
     ],
     "web_accessible_resources": [
         {
-            "resources": ["images/*", "terabithia/*"],
+            "resources": ["images/*", "terabithia/*", "callcloud/*"],
             "matches": ["<all_urls>"]
         }
     ],
