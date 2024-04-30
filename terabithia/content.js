@@ -1,15 +1,21 @@
-const extensionId = 'extensionId'; // chrome.runtime.id; // *NOTE: Configure this to something unique for Non-Chrome browsers to prevent from scripts overlapping!
-const context = 'CONTENT';
-const counterpart = context === 'CONTENT' ? 'PAGE' : 'CONTENT';
-const unique_identifier = `${extensionId}-${context}`;
-const counterpart_identifier = `${extensionId}-${counterpart}`;
+/* ADJUST "TERABITHIA_EXTENSION_ID" to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
+const TERABITHIA_EXTENSION_ID = 'terabithia-test-extension';
+/* ADJUST "TERABITHIA_EXTENSION_ID" to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
 
-async function executeInCounterpartContext(json = {}, bridgeId = counterpart_identifier) {
+const terabithia = {
+    executeInCounterpartContext,
+    context: 'CONTENT',
+    counterpart: 'PAGE',
+    context_identifier: `${TERABITHIA_EXTENSION_ID}-CONTENT`,
+    counterpart_identifier: `${TERABITHIA_EXTENSION_ID}-PAGE`
+};
+
+async function executeInCounterpartContext(json = {}, bridgeId = terabithia.counterpart_identifier) {
     return new Promise((resolve) => {
-        if (!json?.command && bridgeId === counterpart_identifier)
+        if (!json?.command && bridgeId === terabithia.counterpart_identifier)
             return {
                 success: false,
-                message: `executeInCounterpartContext requires a COMMAND property passed via JSON.`
+                message: `terabithia.executeInCounterpartContext requires a COMMAND property passed via JSON.`
             };
 
         const uuidv4 = () =>
@@ -20,7 +26,7 @@ async function executeInCounterpartContext(json = {}, bridgeId = counterpart_ide
         const senderId = uuidv4();
 
         json.senderId = senderId;
-        json.context = context;
+        json.context = terabithia.context;
 
         const eventInfo = {
             detail: json
@@ -40,25 +46,21 @@ async function executeInCounterpartContext(json = {}, bridgeId = counterpart_ide
     });
 }
 
-var terabithia = {
-    executeInCounterpartContext
-};
-
-window.addEventListener(unique_identifier, async (e) => {
+window.addEventListener(terabithia.context_identifier, async (e) => {
     const body = e.detail || {};
     const command = body.command;
     const senderId = body.senderId;
 
     var response = {
         success: false,
-        message: `Unexpected command received in ${context} context. Command: ${command}`
+        message: `Unexpected command received in ${terabithia.context} context. Command: ${terabithia.command}`
     };
 
     switch (command) {
         case 'checkContext':
             response = {
                 success: true,
-                message: `Terabithia is working in ${context} context | You sent a message *FROM* ${counterpart} context and received a response accessible via ${context} context, and received the response back *IN* ${counterpart} context.`
+                message: `Terabithia is working in ${terabithia.context} context | You sent a message *FROM* ${terabithia.counterpart} context and received a response accessible via ${terabithia.context} context, and received the response back *IN* ${terabithia.counterpart} context.`
             };
             break;
     }
@@ -73,7 +75,6 @@ window.addEventListener(unique_identifier, async (e) => {
 
 function injectTerabithiaIntoPageContext() {
     const script = document.createElement('script');
-    script.id = `terabithia-${extensionId}`;
     script.src = chrome.runtime.getURL('terabithia/page.js');
     script.onload = function () {
         this.remove();
