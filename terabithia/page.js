@@ -17,6 +17,11 @@ window[TERABITHIA] = {
     */
 };
 
+const uuidv4 = () =>
+    ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+        (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+    );
+
 async function executeInCounterpartContext(json = {}, bridgeId = window[TERABITHIA].terabithia.counterpart_identifier) {
     return new Promise((resolve) => {
         if (!json?.command && bridgeId === window[TERABITHIA].terabithia.counterpart_identifier)
@@ -24,11 +29,6 @@ async function executeInCounterpartContext(json = {}, bridgeId = window[TERABITH
                 success: false,
                 message: `terabithia.executeInCounterpartContext requires a COMMAND property passed via JSON.`
             };
-
-        const uuidv4 = () =>
-            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-                (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-            );
 
         const senderId = uuidv4();
 
@@ -74,12 +74,17 @@ window.addEventListener(window[TERABITHIA].terabithia.context_identifier, async 
 
     const commandCallback = window[TERABITHIA].commands?.[command];
     if (commandCallback && typeof commandCallback === 'function') {
-        response = await commandCallback();
+        response = await commandCallback(body);
     } else if (commandCallback && typeof commandCallback !== 'function') {
         response = {
             success: false,
             message: `Command callback for ${command} is not a function.`
         };
+    } else if (!commandCallback) {
+        const defaultCommandCallback = window[TERABITHIA].defaults?.[command];
+        if (defaultCommandCallback) {
+            response = await defaultCommandCallback(body);
+        }
     }
 
     await executeInCounterpartContext(
@@ -89,3 +94,83 @@ window.addEventListener(window[TERABITHIA].terabithia.context_identifier, async 
         senderId
     );
 });
+
+/* 
+    Helpers for COMMON use cases in PAGE context
+*/
+window[TERABITHIA].helpers = {
+    getReactKey: (element, reactKey = '__reactProps') => {
+        // Mostly you will need to use "__reactProps"
+        // However, sometimes you may want to access "__reactFiber" or "__reactInternalInstance" etc...
+        return Object.keys(element).filter((key) => key.startsWith(reactKey))[0];
+    },
+    getReactProps: (element) => {
+        const reactPropKey = window[TERABITHIA].helpers.getReactKey(element);
+        const reactProps = element[reactPropKey];
+        return reactProps;
+    },
+    getReactFibers: (element) => {
+        const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, '__reactFiber');
+        const reactFibers = element[reactPropKey];
+        return reactFibers;
+    },
+    getReactProp: (element, prop) => {
+        const reactProps = window[TERABITHIA].helpers.getReactProps(element);
+        return reactProps[prop];
+    },
+    getReactFiber: (element, prop) => {
+        const reactFibers = window[TERABITHIA].helpers.getReactFibers(element);
+        return reactFibers[prop];
+    }
+};
+
+/*
+    Default commands available in PAGE context utilizing the helpers above
+*/
+window[TERABITHIA].defaults = {
+    triggerReactEvent: (body) => {
+        const selector = body.selector;
+        const event = body.event;
+        if (!selector)
+            return {
+                success: false,
+                message: 'Could not trigger react event. No selector provided. Your body should include a SELECTOR key.'
+            };
+        if (!event)
+            return {
+                success: false,
+                message: 'Could not trigger react event. No event provided. Your body should include an EVENT key.'
+            };
+        const element = document.querySelector(selector);
+        if (!element)
+            return {
+                success: false,
+                message: `Could not trigger react event. No element found with selector ${selector}.`
+            };
+        const reactProps = window[TERABITHIA].helpers.getReactProps(element);
+        if (!reactProps)
+            return {
+                success: false,
+                message: `Could not trigger react event. No react props found on element with selector ${selector}.`
+            };
+        const reactEventHandler = reactProps[event];
+        if (!reactEventHandler)
+            return {
+                success: false,
+                message: `Could not trigger react event. No react event handler "${event}" found on element with selector ${selector}.`
+            };
+
+        try {
+            reactEventHandler(new Event(''));
+            return {
+                success: true,
+                message: `Successfully triggered ${event} on element with selector ${selector}.`
+            };
+        } catch (err) {
+            return {
+                success: false,
+                message: `Could not trigger react event. ${err.toString()}`
+            };
+        }
+    }
+};

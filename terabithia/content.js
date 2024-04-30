@@ -17,6 +17,11 @@ window[TERABITHIA] = {
     */
 };
 
+const uuidv4 = () =>
+    ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
+        (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
+    );
+
 async function executeInCounterpartContext(json = {}, bridgeId = window[TERABITHIA].terabithia.counterpart_identifier) {
     return new Promise((resolve) => {
         if (!json?.command && bridgeId === window[TERABITHIA].terabithia.counterpart_identifier)
@@ -24,11 +29,6 @@ async function executeInCounterpartContext(json = {}, bridgeId = window[TERABITH
                 success: false,
                 message: `terabithia.executeInCounterpartContext requires a COMMAND property passed via JSON.`
             };
-
-        const uuidv4 = () =>
-            ([1e7] + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, (c) =>
-                (c ^ (crypto.getRandomValues(new Uint8Array(1))[0] & (15 >> (c / 4)))).toString(16)
-            );
 
         const senderId = uuidv4();
 
@@ -89,6 +89,43 @@ window.addEventListener(window[TERABITHIA].terabithia.context_identifier, async 
         senderId
     );
 });
+
+/* 
+    Helpers for COMMON use cases in CONTENT script context
+*/
+window[TERABITHIA].helpers = {
+    triggerElementsReactEvent: async (element, event) => {
+        if (!element)
+            return {
+                success: false,
+                message: 'Element not found.'
+            };
+
+        const targetId = uuidv4();
+
+        element.setAttribute('data-terabithia-target', targetId);
+
+        const performEventTriggerInPageContext = await window[TERABITHIA].execute({
+            command: 'triggerReactEvent',
+            selector: `[data-terabithia-target="${targetId}"]`,
+            event
+        });
+        const { success, message } = performEventTriggerInPageContext;
+
+        element.removeAttribute('data-terabithia-target');
+
+        return {
+            success,
+            message
+        };
+    }
+};
+
+/*
+    There are no default "out-of-the-box" commands for the CONTENT script context to handle FROM PAGE context.
+    That is up to you to decide what you want for going this direction.
+    One idea is to access chrome.storage.local to get data only accessible in the CONTENT script context, but be careful with that.
+*/
 
 function injectTerabithiaIntoPageContext() {
     const script = document.createElement('script');
