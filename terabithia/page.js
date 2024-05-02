@@ -1,5 +1,5 @@
 /* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
-const TERABITHIA = 'terabithia-bridge';
+const TERABITHIA = 'sidebar-bridge';
 /* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
 
 window[TERABITHIA] = {
@@ -100,28 +100,8 @@ window.addEventListener(window[TERABITHIA].terabithia.context_identifier, async 
 */
 window[TERABITHIA].helpers = {
     getReactKey: (element, reactKey = '__reactProps') => {
-        // Mostly you will need to use "__reactProps"
-        // However, sometimes you may want to access "__reactFiber" or "__reactInternalInstance" etc...
         if (!element) return;
         return Object.keys(element).filter((key) => key.startsWith(reactKey))[0];
-    },
-    getReactProps: (element) => {
-        const reactPropKey = window[TERABITHIA].helpers.getReactKey(element);
-        const reactProps = element?.[reactPropKey];
-        return reactProps;
-    },
-    getReactFibers: (element) => {
-        const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, '__reactFiber');
-        const reactFibers = element?.[reactPropKey];
-        return reactFibers;
-    },
-    getReactProp: (element, prop) => {
-        const reactProps = window[TERABITHIA].helpers.getReactProps(element);
-        return reactProps?.[prop];
-    },
-    getReactFiber: (element, prop) => {
-        const reactFibers = window[TERABITHIA].helpers.getReactFibers(element);
-        return reactFibers?.[prop];
     },
     getReactProperties: (element, reactKey = '__reactProps') => {
         const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, reactKey);
@@ -200,6 +180,7 @@ window[TERABITHIA].defaults = {
                 success: false,
                 message: `Could not get react properties. No react props found on element with selector ${selector}.`
             };
+
         // Can't send callbacks back to content script
         const reactPropsNoCallbacks = Object.keys(reactProps)
             .filter((key) => typeof reactProps[key] !== 'function')
@@ -207,6 +188,22 @@ window[TERABITHIA].defaults = {
                 obj[key] = reactProps[key];
                 return obj;
             }, {});
+
+        if (reactPropsNoCallbacks['children']) {
+            const children = reactPropsNoCallbacks['children'];
+            if (Array.isArray(children)) {
+                reactPropsNoCallbacks['children'] = children.map((child) => {
+                    if (child?.props?.children) {
+                        return {
+                            props: {
+                                children: child.props.children
+                            }
+                        };
+                    }
+                    return child;
+                });
+            }
+        }
 
         return {
             success: true,
