@@ -11,8 +11,9 @@ const TERABITHIA = 'terabithia-bridge';
 // ADJUST "commands" to add custom functionality.
 // This initializes PAGE script callbacks for CONTENT script context to access \\
 window[TERABITHIA].commands = {
-    blah: () => {
-        console.log('blah in page context...');
+    blah: (data) => {
+        // "data" will include any data passed from the content script in the json value passed to the .execute() function.
+        console.log('blah in page context...', data);
         return {
             success: true,
             message: 'blah in page context ran.'
