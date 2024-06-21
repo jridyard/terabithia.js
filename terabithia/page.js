@@ -1,5 +1,5 @@
 /* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
-const TERABITHIA = 'sidebar-bridge';
+const TERABITHIA = 'terabithia-bridge'; // was "sidebar-bridge" ? changed 6.17
 /* ADJUST "TERABITHIA" (Unique ID for your extension) to be the SAME in ALL terabithia files both CONTENT and PAGE scripts MUST share the same ID */
 
 window[TERABITHIA] = {
@@ -107,6 +107,9 @@ window[TERABITHIA].helpers = {
         const reactPropKey = window[TERABITHIA].helpers.getReactKey(element, reactKey);
         const reactProps = element?.[reactPropKey];
         return reactProps;
+    },
+    getReactProps: (element, reactKey = '__reactProps') => {
+        return window[TERABITHIA].helpers.getReactProperties(element, reactKey);
     }
 };
 
